@@ -168,6 +168,10 @@ public class TableProperties {
   public static final String PARQUET_BLOOM_FILTER_COLUMN_ENABLED_PREFIX =
       "write.parquet.bloom-filter-enabled.column.";
 
+  public static final String PARQUET_STATISTICS_TRUNCATE_LENGTH =
+      "write.parquet.statistics.truncate.length";
+  public static final int PARQUET_STATISTICS_TRUNCATE_LENGTH_DEFAULT = 2147483647;
+
   public static final String AVRO_COMPRESSION = "write.avro.compression-codec";
   public static final String DELETE_AVRO_COMPRESSION = "write.delete.avro.compression-codec";
   public static final String AVRO_COMPRESSION_DEFAULT = "gzip";

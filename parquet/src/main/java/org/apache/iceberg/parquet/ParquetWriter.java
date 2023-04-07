@@ -85,6 +85,7 @@ class ParquetWriter<T> implements FileAppender<T>, Closeable {
 
   private static final String COLUMN_INDEX_TRUNCATE_LENGTH = "parquet.columnindex.truncate.length";
   private static final int DEFAULT_COLUMN_INDEX_TRUNCATE_LENGTH = 64;
+  private static final boolean DEFAULT_PAGE_WRITE_CHECKSUM_ENABLED = true;
 
   @SuppressWarnings("unchecked")
   ParquetWriter(
@@ -119,7 +120,14 @@ class ParquetWriter<T> implements FileAppender<T>, Closeable {
       try {
         this.writer =
             new ParquetFileWriter(
-                ParquetIO.file(output, conf), parquetSchema, writeMode, targetRowGroupSize, 0);
+                ParquetIO.file(output, conf),
+                parquetSchema,
+                writeMode,
+                targetRowGroupSize,
+                0,
+                this.columnIndexTruncateLength,
+                props.getStatisticsTruncateLength(),
+                DEFAULT_PAGE_WRITE_CHECKSUM_ENABLED);
       } catch (IOException e) {
         throw new UncheckedIOException("Failed to create Parquet file", e);
       }

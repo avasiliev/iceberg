@@ -45,6 +45,8 @@ import static org.apache.iceberg.TableProperties.PARQUET_ROW_GROUP_CHECK_MIN_REC
 import static org.apache.iceberg.TableProperties.PARQUET_ROW_GROUP_CHECK_MIN_RECORD_COUNT_DEFAULT;
 import static org.apache.iceberg.TableProperties.PARQUET_ROW_GROUP_SIZE_BYTES;
 import static org.apache.iceberg.TableProperties.PARQUET_ROW_GROUP_SIZE_BYTES_DEFAULT;
+import static org.apache.iceberg.TableProperties.PARQUET_STATISTICS_TRUNCATE_LENGTH;
+import static org.apache.iceberg.TableProperties.PARQUET_STATISTICS_TRUNCATE_LENGTH_DEFAULT;
 
 import java.io.File;
 import java.io.IOException;
@@ -250,6 +252,7 @@ public class Parquet {
       int rowGroupCheckMinRecordCount = context.rowGroupCheckMinRecordCount();
       int rowGroupCheckMaxRecordCount = context.rowGroupCheckMaxRecordCount();
       int bloomFilterMaxBytes = context.bloomFilterMaxBytes();
+      int statisticsTruncateLength = context.statisticsTruncateLength();
       Map<String, String> columnBloomFilterEnabled = context.columnBloomFilterEnabled();
 
       if (compressionLevel != null) {
@@ -289,6 +292,7 @@ public class Parquet {
                 .withDictionaryPageSize(dictionaryPageSize)
                 .withMinRowCountForPageSizeCheck(rowGroupCheckMinRecordCount)
                 .withMaxRowCountForPageSizeCheck(rowGroupCheckMaxRecordCount)
+                .withStatisticsTruncateLength(statisticsTruncateLength)
                 .withMaxBloomFilterBytes(bloomFilterMaxBytes);
 
         for (Map.Entry<String, String> entry : columnBloomFilterEnabled.entrySet()) {
@@ -323,7 +327,8 @@ public class Parquet {
                 .withRowGroupSize(rowGroupSize)
                 .withPageSize(pageSize)
                 .withPageRowCountLimit(pageRowLimit)
-                .withDictionaryPageSize(dictionaryPageSize);
+                .withDictionaryPageSize(dictionaryPageSize)
+                .withStatisticsTruncateLength(statisticsTruncateLength);
 
         for (Map.Entry<String, String> entry : columnBloomFilterEnabled.entrySet()) {
           String colPath = entry.getKey();
@@ -345,6 +350,7 @@ public class Parquet {
       private final int rowGroupCheckMinRecordCount;
       private final int rowGroupCheckMaxRecordCount;
       private final int bloomFilterMaxBytes;
+      private final int statisticsTruncateLength;
       private final Map<String, String> columnBloomFilterEnabled;
 
       private Context(
@@ -357,6 +363,7 @@ public class Parquet {
           int rowGroupCheckMinRecordCount,
           int rowGroupCheckMaxRecordCount,
           int bloomFilterMaxBytes,
+          int statisticsTruncateLength,
           Map<String, String> columnBloomFilterEnabled) {
         this.rowGroupSize = rowGroupSize;
         this.pageSize = pageSize;
@@ -367,6 +374,7 @@ public class Parquet {
         this.rowGroupCheckMinRecordCount = rowGroupCheckMinRecordCount;
         this.rowGroupCheckMaxRecordCount = rowGroupCheckMaxRecordCount;
         this.bloomFilterMaxBytes = bloomFilterMaxBytes;
+        this.statisticsTruncateLength = statisticsTruncateLength;
         this.columnBloomFilterEnabled = columnBloomFilterEnabled;
       }
 
@@ -422,6 +430,14 @@ public class Parquet {
                 config, PARQUET_BLOOM_FILTER_MAX_BYTES, PARQUET_BLOOM_FILTER_MAX_BYTES_DEFAULT);
         Preconditions.checkArgument(bloomFilterMaxBytes > 0, "bloom Filter Max Bytes must be > 0");
 
+        int statisticsTruncateLength =
+            PropertyUtil.propertyAsInt(
+                config,
+                PARQUET_STATISTICS_TRUNCATE_LENGTH,
+                PARQUET_STATISTICS_TRUNCATE_LENGTH_DEFAULT);
+        Preconditions.checkArgument(
+            statisticsTruncateLength > 0, "statistics truncate length must be > 0");
+
         Map<String, String> columnBloomFilterEnabled =
             PropertyUtil.propertiesWithPrefix(config, PARQUET_BLOOM_FILTER_COLUMN_ENABLED_PREFIX);
 
@@ -435,6 +451,7 @@ public class Parquet {
             rowGroupCheckMinRecordCount,
             rowGroupCheckMaxRecordCount,
             bloomFilterMaxBytes,
+            statisticsTruncateLength,
             columnBloomFilterEnabled);
       }
 
@@ -493,6 +510,14 @@ public class Parquet {
                 config, PARQUET_BLOOM_FILTER_MAX_BYTES, PARQUET_BLOOM_FILTER_MAX_BYTES_DEFAULT);
         Preconditions.checkArgument(bloomFilterMaxBytes > 0, "bloom Filter Max Bytes must be > 0");
 
+        int statisticsTruncateLength =
+            PropertyUtil.propertyAsInt(
+                config,
+                PARQUET_STATISTICS_TRUNCATE_LENGTH,
+                PARQUET_STATISTICS_TRUNCATE_LENGTH_DEFAULT);
+        Preconditions.checkArgument(
+            statisticsTruncateLength > 0, "statistics truncate length must be > 0");
+
         Map<String, String> columnBloomFilterEnabled =
             PropertyUtil.propertiesWithPrefix(config, PARQUET_BLOOM_FILTER_COLUMN_ENABLED_PREFIX);
 
@@ -506,6 +531,7 @@ public class Parquet {
             rowGroupCheckMinRecordCount,
             rowGroupCheckMaxRecordCount,
             bloomFilterMaxBytes,
+            statisticsTruncateLength,
             columnBloomFilterEnabled);
       }
 
@@ -551,6 +577,10 @@ public class Parquet {
 
       int bloomFilterMaxBytes() {
         return bloomFilterMaxBytes;
+      }
+
+      int statisticsTruncateLength() {
+        return statisticsTruncateLength;
       }
 
       Map<String, String> columnBloomFilterEnabled() {
